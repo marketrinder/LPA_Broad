@@ -1,0 +1,1900 @@
+#
+
+library(dplyr)
+library(data.table)
+library(tidyr)
+library(ggplot2)
+library(lubridate)
+library(stringr)
+library(survival)
+
+# load chromosome 6 SNP info
+
+ukb_KIV2 <- fread("ukb_mfi_chr6_v3.txt", header = FALSE, stringsAsFactors = FALSE)
+ukb_KIV2 <- ukb_KIV2 %>%
+  filter(V2 == 'rs10455872' |
+           V2 == 'rs78822335' |
+           V2 == 'rs41270992' |
+           V2 == 'rs77348928' |
+           V2 == 'rs4708876' |
+           V2 == 'rs142934541' |
+           V2 == 'rs200929434' |
+           V2 == 'rs41267805' |
+           V2 == 'rs3837009' |
+           V2 == 'rs57778954' |
+           V2 == 'rs3124786' |
+           V2 == 'rs12055389' |
+           V2 == 'rs62440924' |
+           V2 == 'rs3004078' |
+           V2 == 'rs12212146' |
+           V2 == 'rs186696265' |
+           V2 == 'rs60700834' |
+           V2 == 'rs12214416' |
+           V2 == 'rs190731320' |
+           V2 == 'rs143461353' |
+           V2 == 'rs62439762' |
+           V2 == 'rs190207147' |
+           V2 == 'rs9365098' |
+           V2 == 'rs8191728' |
+           V2 == 'rs12212507' |
+           V2 == 'rs746170379' |
+           V2 == 'rs791578' |
+           V2 == 'rs117774213' |
+           V2 == 'rs183869109' |
+           V2 == 'rs945389972' |
+           V2 == 'rs76000021' |
+           V2 == 'rs71565748' |
+           V2 == 'rs531619201' |
+           V2 == 'rs193226979' |
+           V2 == 'rs777366118' |
+           V2 == 'rs117370183' |
+           V2 == 'rs148197223' |
+           V2 == 'rs11481286' |
+           V2 == 'rs758675823' |
+           V2 == 'rs144005062' |
+           V2 == 'rs118154734' |
+           V2 == 'rs189214196' |
+           V2 == 'rs11752864' |
+           V2 == 'rs74716441' |
+           V2 == 'rs80067594' |
+           V2 == 'rs112376176' |
+           V2 == 'rs1338530762' |
+           V2 == 'rs73015452' |
+           V2 == 'rs966617969' |
+           V2 == 'rs149851855' |
+           V2 == 'rs551641295' |
+           V2 == 'rs77444540' |
+           V2 == 'rs73023832' |
+           V2 == 'rs1835346' |
+           V2 == 'rs182240816' |
+           V2 == 'rs187162356' |
+           V2 == 'rs539081621' |
+           V2 == 'rs1006591031' |
+           V2 == 'rs778781974' |
+           V2 == 'rs766237270' |
+           V2 == 'rs137966998' |
+           V1 == '6:161010118_A_G' |
+           V1 == '6:161068192_A_G' |
+           V1 == '6:161021648_G_C' |
+           V1 == '6:161013030_G_A' |
+           V1 == '6:161068320_C_G' |
+           V1 == '6:160991737_C_A' |
+           V1 == '6:161076598_G_GT' |
+           V1 == '6:160921969_G_A' |
+           V1 == '6:161638914_GGTTTGTTCT_G' |
+           V1 == '6:160431017_C_CTTAA' |
+           V1 == '6:160939162_T_C' |
+           V1 == '6:161091952_C_T' |
+           V1 == '6:160611544_A_G' |
+           V1 == '6:160767990_A_C' |
+           V1 == '6:161125454_T_C' |
+           V1 == '6:161111700_C_T' |
+           V1 == '6:161004491_G_A' |
+           V1 == '6:160910517_T_A' |
+           V1 == '6:161856666_T_C' |
+           V1 == '6:160954800_C_T' |
+           V1 == '6:161099993_G_A' |
+           V1 == '6:161158692_C_T' |
+           V1 == '6:160230911_A_G' |
+           V1 == '6:160429737_A_G' |
+           V1 == '6:161071982_G_A' |
+           V1 == '6:159486116_T_A' |
+           V1 == '6:160667056_T_C' |
+           V1 == '6:161233297_C_T' |
+           V1 == '6:161565731_C_G' |
+           V1 == '6:160703607_T_G' |
+           V1 == '6:160985501_T_C' |
+           V1 == '6:160091836_C_T' |
+           V1 == '6:160801401_G_A' |
+           V1 == '6:159877745_C_A' |
+           V1 == '6:161008527_G_A' |
+           V1 == '6:160915695_C_A' |
+           V1 == '6:160988431_G_C' |
+           V1 == '6:160434842_C_CA' |
+           V1 == '6:159757438_A_T' |
+           V1 == '6:161032149_T_C' |
+           V1 == '6:161534516_A_G' |
+           V1 == '6:159348537_G_A' |
+           V1 == '6:161169993_C_A' |
+           V1 == '6:162036041_A_C' |
+           V1 == '6:160697866_C_G' |
+           V1 == '6:160874032_C_T' |
+           V1 == '6:161141230_A_G' |
+           V1 == '6:161590128_T_G' |
+           V1 == '6:160947381_T_C' |
+           V1 == '6:161447447_A_G' |
+           V1 == '6:160888473_A_AGCTCC' |
+           V1 == '6:160214984_C_T' |
+           V1 == '6:161376085_A_G' |
+           V1 == '6:161162290_A_G' |
+           V1 == '6:161830218_C_T' |
+           V1 == '6:160877454_C_T' |
+           V1 == '6:161204966_G_A' |
+           V1 == '6:159551840_G_A' |
+           V1 == '6:160209891_G_A' |
+           V1 == '6:160194706_G_A' |
+           V1 == '6:160380550_C_T') %>%
+  rename(ukb_variant = V1,
+         SNP = V2,
+         INFO_score = V8)
+         
+         
+
+head(KIV2, 100)  
+dim(KIV2)
+arrange(V6)
+
+
+ukb_frq <- fread("KIV2_CNV_imputation.frq", header = TRUE)
+head(ukb_frq)
+
+ukb_frq <- ukb_frq %>%
+  filter(SNP == 'rs189214196' |
+           SNP == 'rs746170379' |
+           SNP == 'rs758675823' |
+           SNP == 'rs193226979' |
+           SNP == 'rs71565748' |
+           SNP == 'rs766237270' |
+           SNP == 'rs778781974' |
+           SNP == 'rs77444540' |
+           SNP == 'rs9365098' |
+           SNP == 'rs137966998' |
+           SNP == 'rs8191728' |
+           SNP == 'rs796649399' |
+           SNP == 'rs11481286' |
+           SNP == 'rs62440924' |
+           SNP == 'rs791578' |
+           SNP == 'rs80067594' |
+           SNP == 'rs3004078' |
+           SNP == 'rs531619201' |
+           SNP == 'rs112376176' |
+           SNP == 'rs187162356' |
+           SNP == 'rs551641295' |
+           SNP == 'rs12214416' |
+           SNP == 'rs117370183' |
+           SNP == 'rs41267805' |
+           SNP == 'rs3124786' |
+           SNP == '6:160947381_T_C' |
+           SNP == 'rs143461353' |
+           SNP == 'rs76000021' |
+           SNP == 'rs148197223' |
+           SNP == 'rs142934541' |
+           SNP == 'rs60700834' |
+           SNP == 'rs777366118' |
+           SNP == 'rs10455872' |
+           SNP == 'rs77348928' |
+           SNP == 'rs41270992' |
+           SNP == 'rs144005062' |
+           SNP == 'rs78822335' |
+           SNP == 'rs4708876' |
+           SNP == 'rs12212507' |
+           SNP == 'rs200929434' |
+           SNP == 'rs12055389' |
+           SNP == 'rs62439762' |
+           SNP == 'rs186696265' |
+           SNP == 'rs12212146' |
+           SNP == 'rs190207147' |
+           SNP == 'rs1835346' |
+           SNP == 'rs11752864' |
+           SNP == 'rs539081621' |
+           SNP == 'rs117774213' |
+           SNP == 'rs73023832' |
+           SNP == 'rs149851855' |
+           SNP == 'rs118154734' |
+           SNP == 'rs183869109' |
+           SNP == 'rs73015452' |
+           SNP == 'rs757719486' |
+           SNP == 'rs182240816' |
+           SNP == 'rs190731320' |
+           SNP == 'rs74716441') %>%
+  dplyr::select(-CHR, -NCHROBS)
+  
+
+
+dim(ukb_frq)
+head(ukb_frq, 100)
+head(ukb_KIV2, 100)
+
+
+
+KIV2 %>%
+  filter(V1 == "6:161638914_GGTTTGTTCT_G" |
+           V1 == "6:160431017_C_CTTAA" |
+           V1 == "6:160947381_T_C")
+
+KIV2scores <- read.csv("2020-04-28-KIV2-CN_imputation_scores.csv", header = TRUE, stringsAsFactors = FALSE)
+head(KIV2scores)
+KIV2scores <- KIV2scores %>%
+  mutate(EAF = ifelse(LASSO.Coefficient_KIV2.CN.Allele < 0, 1 - MAF_in.FIN.WGS, MAF_in.FIN.WGS)) %>%
+  mutate(EFF = case_when(LASSO.Coefficient_KIV2.CN.Allele < 0 ~ A1,
+                         LASSO.Coefficient_KIV2.CN.Allele > 0 ~ A2)) %>%
+  mutate(ALT = case_when(LASSO.Coefficient_KIV2.CN.Allele < 0 ~ A2,
+                         LASSO.Coefficient_KIV2.CN.Allele > 0 ~ A1)) %>% 
+  mutate(LASSO.Coefficient_KIV2.CN.Allele_positive = abs(LASSO.Coefficient_KIV2.CN.Allele)) %>%
+  dplyr::select(-A1, -A2)
+  
+
+head(KIV2scores)
+ 
+  
+
+KIV2scores <- left_join(KIV2scores, ukb_KIV2, by = "SNP") %>%
+  left_join(ukb_frq, by = "SNP") %>%
+  mutate(ukb_EAF = case_when(EFF == A1 ~ MAF,
+                             EFF == A2 ~ 1 - MAF)) %>%
+  mutate(dif_EAF_EAFukb = (EAF - ukb_EAF)) %>%
+  mutate(dif_EAF_EAFukb_weighted = ((EAF - ukb_EAF)/EAF))
+  
+
+KIV2scores %>%
+  arrange(desc(abs(dif_EAF_EAFukb_weighted))) 
+head(KIV2scores)
+
+
+library(ggplot2)
+
+ggplot(KIV2scores, aes(x= EAF, y = ukb_EAF)) +
+  geom_point()
+
+
+ggplot(KIV2scores, aes(x= (EAF), y = (ukb_EAF), 
+                       size = LASSO.Coefficient_KIV2.CN.Allele_positive,
+                       label = SNP)) +
+  geom_point() +
+  geom_smooth(method='lm', formula= y~x) +
+  geom_text(aes(label# linear regression results
+summary(lm((ukb_EAF) ~ (EAF), data=KIV2scores))
+
+
+
+
+ggplot(KIV2scores, aes(x= log10(EAF), y = log10(ukb_EAF), 
+                       size = LASSO.Coefficient_KIV2.CN.Allele_positive,
+                       label = SNP)) +
+  geom_point() +
+  geom_smooth(method='lm', formula= y~x) +
+  geom_text(aes(label=SNP),hjust=0, vjust=0)
+# linear
+summary(lm(log10(ukb_EAF) ~ log10(EAF), data=KIV2scores))
+
+
+
+
+head(KIV2scores)
+
+
+
+ggplot(KIV2scores, aes(x= LASSO.Coefficient_KIV2.CN.Allele_positive, y = dif_EAF_EAFukb_weighted)) +
+  geom_point() +
+  geom_text(aes(label=SNP),hjust=0, vjust=0)
+
+ggplot(KIV2scores, aes(x= LASSO.Coefficient_KIV2.CN.Allele_positive, y = dif_EAF_EAFukb)) +
+  geom_point() +
+  
+  geom_text(aes(label=SNP),hjust=0, vjust=0)
+
+write.csv(KIV2scores, "tester.csv")
+  
+dim(KIV2scores)
+head(KIV2scores$ukb_EAF, 100)
+
+head(KIV2scores)
+
+
+KIV2scores %>%
+  filter(rsID == "rs41302901")
+
+dim(KIV2scores)
+head(KIV2scores, 100)
+
+write.csv(KIV2, "KIV2.csv")
+write.csv(KIV2scores, "KIV2scores.csv")
+
+write.table(KIV2scores, "KIV2_CNV_imputation_scores.txt", 
+            quote = FALSE, 
+            sep = "\t", 
+            row.names = FALSE)
+
+sum(is.na(KIV2scores$V1))
+head(KIV2scores)
+min(KIV2$V8)
+
+#---------------------------------------------------------------------------------
+# read UK Biobank serum biochemistry data 
+#---------------------------------------------------------------------------------
+biochem <- read.table("D:\\ukb29334\\ukb29334.tab", header=TRUE, sep="\t")
+biochem <- data.frame(f.eid = biochem$f.eid, 
+                         TC = biochem$f.30690.0.0,
+                         HDLc = biochem$f.30760.0.0,
+                         APOA1 = biochem$f.30630.0.0,
+                         LDLc = biochem$f.30780.0.0,
+                         APOB = biochem$f.30640.0.0,
+                         TG = biochem$f.30870.0.0,
+                         LPa = biochem$f.30790.0.0,
+                         CRP = biochem$f.30710.0.0,
+                         glucose = biochem$f.30740.0,
+                         HbA1c = biochem$f.30750.0.0)
+biochem$f.eid <- as.character(biochem$f.eid)
+head(biochem)
+
+#---------------------------------------------------------------------------------
+# read UK Biobank serum biochemistry data 
+#---------------------------------------------------------------------------------
+
+KIV2 <- fread("KIV2_CNV_imputation_ALL.profile")
+KIV2 <- KIV2 %>%
+  rename(f.eid = FID) %>%
+  dplyr::select(-IID, - PHENO)
+KIV2$f.eid <- as.character(KIV2$f.eid)
+dim(KIV2)
+
+ggplot(KIV2, aes(x=SCORESUM)) +
+  geom_density()
+
+
+
+LPAsnps <- fread("plink2.raw")
+LPAsnps <- LPAsnps %>%
+  rename(f.eid = FID) %>%
+  dplyr::select(-IID, -PAT, -MAT, -PHENOTYPE)
+LPAsnps$f.eid <- as.character(LPAsnps$f.eid)
+LPAsnps <- left_join(LPAsnps, biochem, by = "f.eid")
+
+names(LPAsnps)
+head(LPAsnps$rs10455872_G)
+library(broom)
+
+rs189214196_A <- lm(log10(LPa) ~ rs189214196_A, data = LPAsnps)
+summary(rs746170379_A)
+
+rs746170379_A <- lm(log10(LPa) ~ rs746170379_A, data = LPAsnps)
+
+
+rs758675823_T <- lm(log10(LPa) ~ rs758675823_T, data = LPAsnps)
+rs193226979_A <- lm(log10(LPa) ~ rs193226979_A, data = LPAsnps)
+rs71565748_T <- lm(log10(LPa) ~ rs71565748_T, data = LPAsnps)
+rs766237270_A <- lm(log10(LPa) ~ rs766237270_A, data = LPAsnps)
+rs778781974_A <- lm(log10(LPa) ~ rs778781974_A, data = LPAsnps)
+rs77444540_T <- lm(log10(LPa) ~ rs77444540_T, data = LPAsnps)
+rs9365098_G <- lm(log10(LPa) ~ rs9365098_G, data = LPAsnps)
+rs137966998_T <- lm(log10(LPa) ~ rs137966998_T, data = LPAsnps)
+rs8191728_G <- lm(log10(LPa) ~ rs8191728_G, data = LPAsnps)
+rs796649399_CTTAA <- lm(log10(LPa) ~ rs796649399_CTTAA, data = LPAsnps)
+rs11481286_CA <- lm(log10(LPa) ~ rs11481286_CA, data = LPAsnps)
+rs62440924_G <- lm(log10(LPa) ~ rs62440924_G, data = LPAsnps)
+rs791578_C <- lm(log10(LPa) ~ rs791578_C, data = LPAsnps)
+rs80067594_G <- lm(log10(LPa) ~ rs80067594_G, data = LPAsnps)
+rs3004078_C <- lm(log10(LPa) ~ rs3004078_C, data = LPAsnps)
+rs531619201_A <- lm(log10(LPa) ~ rs531619201_A, data = LPAsnps)
+rs112376176_T <- lm(log10(LPa) ~ rs112376176_T, data = LPAsnps)
+rs187162356_T <- lm(log10(LPa) ~ rs187162356_T, data = LPAsnps)
+rs551641295_AGCTCC <- lm(log10(LPa) ~ rs551641295_AGCTCC, data = LPAsnps)
+rs12214416_A <- lm(log10(LPa) ~ rs12214416_A, data = LPAsnps)
+rs117370183_A <- lm(log10(LPa) ~ rs117370183_A, data = LPAsnps)
+rs41267805_A <- lm(log10(LPa) ~ rs41267805_A, data = LPAsnps)
+rs3124786_C <- lm(log10(LPa) ~ rs3124786_C, data = LPAsnps)
+6:160947381_T_C_C <- lm(log10(LPa) ~ 6:160947381_T_C_C, data = LPAsnps)
+rs143461353_T <- lm(log10(LPa) ~ rs143461353_T, data = LPAsnps)
+rs76000021_C <- lm(log10(LPa) ~ rs76000021_C, data = LPAsnps)
+rs148197223_C <- lm(log10(LPa) ~ rs148197223_C, data = LPAsnps)
+rs142934541_A <- lm(log10(LPa) ~ rs142934541_A, data = LPAsnps)
+rs60700834_A <- lm(log10(LPa) ~ rs60700834_A, data = LPAsnps)
+rs777366118_A <- lm(log10(LPa) ~ rs777366118_A, data = LPAsnps)
+rs10455872_G <- lm(log10(LPa) ~ rs10455872_G, data = LPAsnps)
+rs77348928_A <- lm(log10(LPa) ~ rs77348928_A, data = LPAsnps)
+rs41270992_C <- lm(log10(LPa) ~ rs41270992_C, data = LPAsnps)
+rs144005062_C <- lm(log10(LPa) ~ rs144005062_C, data = LPAsnps)
+rs78822335_G <- lm(log10(LPa) ~ rs78822335_G, data = LPAsnps)
+rs4708876_G <- lm(log10(LPa) ~ rs4708876_G, data = LPAsnps)
+rs12212507_A <- lm(log10(LPa) ~ rs12212507_A, data = LPAsnps)
+rs200929434_GT <- lm(log10(LPa) ~ rs200929434_GT, data = LPAsnps)
+rs12055389_T <- lm(log10(LPa) ~ rs12055389_T, data = LPAsnps)
+rs62439762_A <- lm(log10(LPa) ~ rs62439762_A, data = LPAsnps)
+rs186696265_T <- lm(log10(LPa) ~ rs186696265_T, data = LPAsnps)
+rs12212146_C <- lm(log10(LPa) ~ rs12212146_C, data = LPAsnps)
+rs190207147_T <- lm(log10(LPa) ~ rs190207147_T, data = LPAsnps)
+rs1835346_G <- lm(log10(LPa) ~ rs1835346_G, data = LPAsnps)
+rs11752864_A <- lm(log10(LPa) ~ rs11752864_A, data = LPAsnps)
+rs539081621_A <- lm(log10(LPa) ~ rs539081621_A, data = LPAsnps)
+rs117774213_T <- lm(log10(LPa) ~ rs117774213_T, data = LPAsnps)
+rs73023832_G <- lm(log10(LPa) ~ rs73023832_G, data = LPAsnps)
+rs149851855_G <- lm(log10(LPa) ~ rs149851855_G, data = LPAsnps)
+rs118154734_G <- lm(log10(LPa) ~ rs118154734_G, data = LPAsnps)
+rs183869109_G <- lm(log10(LPa) ~ rs183869109_G, data = LPAsnps)
+rs73015452_G <- lm(log10(LPa) ~ rs73015452_G, data = LPAsnps)
+rs757719486_G <- lm(log10(LPa) ~ rs757719486_G, data = LPAsnps)
+rs182240816_T <- lm(log10(LPa) ~ rs182240816_T, data = LPAsnps)
+rs190731320_C <- lm(log10(LPa) ~ rs190731320_C, data = LPAsnps)
+rs74716441_C <- lm(log10(LPa) ~ rs74716441_C, data = LPAsnps)
+
+
+
+rs10455872_G <- lm(log10(LPa) ~ rs10455872_G, data = LPAsnps)
+rs10455872_G <- as.data.frame(tidy(rs10455872_G))
+
+names(LPAsnps)
+
+
+rs10455872_G
+head(LPAsnps)
+
+head(KIV2)
+
+df <- left_join(biochem, KIV2, by = "f.eid")
+
+df %>%
+  ggplot(aes(x=SCORESUM, y = (LPa))) +
+  geom_point(alpha=0.1)
+summary(lm(log10(LPa) ~ SCORESUM, data = df))
+summary(lm((LPa) ~ SCORESUM, data = df))
+
+
+df %>%
+  ggplot(aes(x=SCORESUM)) +
+  geom_density()
+  geom_point(alpha=0.1)
+
+
+
+hist(df$SCORESUM, 10)
+
+imp6 <- fread("imp_chr6.bim", header = FALSE, stringsAsFactors = FALSE)
+imp6 %>%
+  filter(V2 == "rs796649399" |
+           V2 == "rs12212507" |
+           V2 == "rs117370183")
+
+head(imp6)
+
+
+
+
+
+
+read_sel <- function(file) {
+  out <- fread(file, header=FALSE, sep="\t", quote="",
+               select = c(1, # 'f.eid', # individual IDs
+                          8, # 'f.34.0.0', # 	Year of birth
+                          7, # 'f.31.0.0', # Sex
+                          8836, # 'f.21022.0.0', # Age at recruitment
+                          74, # 'f.53.0.0', # Date of attending assessment centre	
+                          78, # 'f.54.0.0', # 	UK Biobank assessment centre	
+                          10412, # 'f.40000.0.0', # Date of death
+                          444, # 'f.191.0.0', # Date lost to follow-up
+                          12311, # 'f.42000.0.0',	# Date of myocardial infarction
+                          12317, # f.42006.0.0	Date of stroke
+                          12319, # f.42008.0.0	Date of ischaemic stroke
+                          12321, # 42010	Date of intracerebral haemorrhage
+                          12323, # 42012	Date of subarachnoid haemorrhage
+                          992, # 'f.2443.0.0, # diabetes diagnosed by doctor
+                          1132, # 'f.2976.0.0', # Age diabetes diagnosed,
+                          5949, # Vascular/heart problems diagnosed by doctor
+                          5950,
+                          5951,
+                          5952,
+                          1128, # 2966	Age high blood pressure diagnosed
+                          376, # Systolic blood pressure, manual reading
+                          1482,  # Systolic blood pressure, automated reading
+                          8820, # Body mass index
+                          57, # 48	Waist circumference
+                          61, # 49	Hip circumference
+                          8585,  # Smoking status
+                          8894, # 22035	Above moderate/vigorous recommendation
+                          8891, # 22032 Description:	IPAQ activity group
+                          660, # 1309	Fresh fruit intake
+                          652, # 1299	Salad / raw vegetable intake
+                          656, # 1289	Cooked vegetable intake
+                          6009, # Medication for cholesterol, blood pressure, diabetes, or take exogenous hormones
+                          6010,
+                          6011,
+                          6012,
+                          6442, # 20002.0.x Non-cancer illness code, self-reported
+                          6443,
+                          6444,
+                          6445,
+                          6446,
+                          6447,
+                          6448,
+                          6449,
+                          6450,
+                          6451,
+                          6452,
+                          6453,
+                          6454,
+                          6455,
+                          6456,
+                          6457,
+                          6458,
+                          6459,
+                          6460,
+                          6461,
+                          6462,
+                          6463,
+                          6464,
+                          6465,
+                          6466,
+                          6467,
+                          6468,
+                          6469,
+                          6470,
+                          6471,
+                          6472,
+                          6473,
+                          6474,
+                          6475, 
+                          6946,
+                          6947,
+                          6948,
+                          6949,
+                          6950,
+                          6951,
+                          6952,
+                          6953,
+                          6954,
+                          6955,
+                          6956,
+                          6957,
+                          6958,
+                          6959,
+                          6960,
+                          6961,
+                          6962,
+                          6963,
+                          6964,
+                          6965,
+                          6966,
+                          6967,
+                          6968,
+                          6969,
+                          6970,
+                          6971,
+                          6972,
+                          6973,
+                          6974,
+                          6975,
+                          6976,
+                          6977,
+                          6978,
+                          6979, 
+                          6770,
+                          6771,
+                          6772,
+                          6773,
+                          6774,
+                          6775,
+                          6776,
+                          6777,
+                          6778,
+                          6779,
+                          6780,
+                          6781,
+                          6782,
+                          6783,
+                          6784,
+                          6785,
+                          6786,
+                          6787,
+                          6788,
+                          6789,
+                          6790,
+                          6791,
+                          6792,
+                          6793,
+                          6794,
+                          6795,
+                          6796,
+                          6797,
+                          6798,
+                          6799,
+                          6800,
+                          6801,
+                          7218,
+                          7219,
+                          7220,
+                          7221,
+                          7222,
+                          7223,
+                          7224,
+                          7225,
+                          7226,
+                          7227,
+                          7228,
+                          7229,
+                          7230,
+                          7231,
+                          7232,
+                          7233,
+                          7234,
+                          7235,
+                          7236,
+                          7237,
+                          7238,
+                          7239,
+                          7240,
+                          7241,
+                          7242,
+                          7243,
+                          7244,
+                          7245,
+                          7246,
+                          7247,
+                          7248,
+                          7249, 
+                          
+                          8318, # 20107	Illnesses of mother
+                          8319,
+                          8320,
+                          8321,
+                          8322,
+                          8323,
+                          8324,
+                          8325,
+                          8326,
+                          8327,
+                          
+                          8413, # 20110	Illnesses of mother
+                          8414,
+                          8415,
+                          8416,
+                          8417,
+                          8418,
+                          8419,
+                          8420,
+                          8421,
+                          8422,
+                          8423,
+                          8424))
+  out <- out %>%
+    rename(f.eid = V1,
+           f.34.0.0 = V8,
+           f.31.0.0 = V7,
+           f.21022.0.0 = V8836,
+           f.53.0.0 = V74,
+           f.54.0.0 = V78,
+           f.40000.0.0 = V10412,
+           f.191.0.0 = V444,
+           f.42000.0.0 = V12311,
+           f.42006.0.0 = V12317,
+           f.42008.0.0 = V12319,
+           f.42010.0.0 = V12321,
+           f.42012.0.0 = V12323,
+           f.2443.0.0 = V992,
+           f.2976.0.0 = V1132,
+           f.6150.0.0 = V5949,
+           f.6150.0.1 = V5950,
+           f.6150.0.2 = V5951,
+           f.6150.0.3 = V5952,
+           f.2966.0.0 = V1128,
+           
+           f.93.0.0 = V376,
+           f.4080.0.0 = V1482,
+           
+           
+           f.21001.0.0 = V8820,
+           f.48.0.0 = V57,
+           f.49.0.0 = V61,
+           f.20116.0.0 = V8585,
+           f.22035.0.0 = V8894,
+           f.22032.0.0 = V8891,
+           f.1309.0.0 = V660,
+           f.1289.0.0 = V652,
+           f.1299.0.0 = V656,
+           f.6153.0.0 = V6009,
+           f.6153.0.1 = V6010,
+           f.6153.0.2 = V6011,
+           f.6153.0.3 = V6012,
+           f.20002.0.0 = V6442,
+           f.20002.0.1 = V6443,
+           f.20002.0.2 = V6444,
+           f.20002.0.3 = V6445,
+           f.20002.0.4 = V6446,
+           f.20002.0.5 = V6447,
+           f.20002.0.6 = V6448,
+           f.20002.0.7 = V6449,
+           f.20002.0.8 = V6450,
+           f.20002.0.9 = V6451,
+           f.20002.0.10 = V6452,
+           f.20002.0.11 = V6453,
+           f.20002.0.12 = V6454,
+           f.20002.0.13 = V6455,
+           f.20002.0.14 = V6456,
+           f.20002.0.15 = V6457,
+           f.20002.0.16 = V6458,
+           f.20002.0.17 = V6459,
+           f.20002.0.18 = V6460,
+           f.20002.0.19 = V6461,
+           f.20002.0.20 = V6462,
+           f.20002.0.21 = V6463,
+           f.20002.0.22 = V6464,
+           f.20002.0.23 = V6465,
+           f.20002.0.24 = V6466,
+           f.20002.0.25 = V6467,
+           f.20002.0.26 = V6468,
+           f.20002.0.27 = V6469,
+           f.20002.0.28 = V6470,
+           f.20002.0.29 = V6471,
+           f.20002.0.30 = V6472,
+           f.20002.0.31 = V6473,
+           f.20002.0.32 = V6474,
+           f.20002.0.33 = V6475,
+           f.20008.0.0 = V6946,
+           f.20008.0.1 = V6947,
+           f.20008.0.2 = V6948,
+           f.20008.0.3 = V6949,
+           f.20008.0.4 = V6950,
+           f.20008.0.5 = V6951,
+           f.20008.0.6 = V6952,
+           f.20008.0.7 = V6953,
+           f.20008.0.8 = V6954,
+           f.20008.0.9 = V6955,
+           f.20008.0.10 = V6956,
+           f.20008.0.11 = V6957,
+           f.20008.0.12 = V6958,
+           f.20008.0.13 = V6959,
+           f.20008.0.14 = V6960,
+           f.20008.0.15 = V6961,
+           f.20008.0.16 = V6962,
+           f.20008.0.17 = V6963,
+           f.20008.0.18 = V6964,
+           f.20008.0.19 = V6965,
+           f.20008.0.20 = V6966,
+           f.20008.0.21 = V6967,
+           f.20008.0.22 = V6968,
+           f.20008.0.23 = V6969,
+           f.20008.0.24 = V6970,
+           f.20008.0.25 = V6971,
+           f.20008.0.26 = V6972,
+           f.20008.0.27 = V6973,
+           f.20008.0.28 = V6974,
+           f.20008.0.29 = V6975,
+           f.20008.0.30 = V6976,
+           f.20008.0.31 = V6977,
+           f.20008.0.32 = V6978,
+           f.20008.0.33 = V6979, 
+           f.20004.0.0 = V6770,
+           f.20004.0.1 = V6771,
+           f.20004.0.2 = V6772,
+           f.20004.0.3 = V6773,
+           f.20004.0.4 = V6774,
+           f.20004.0.5 = V6775,
+           f.20004.0.6 = V6776,
+           f.20004.0.7 = V6777,
+           f.20004.0.8 = V6778,
+           f.20004.0.9 = V6779,
+           f.20004.0.10 = V6780,
+           f.20004.0.11 = V6781,
+           f.20004.0.12 = V6782,
+           f.20004.0.13 = V6783,
+           f.20004.0.14 = V6784,
+           f.20004.0.15 = V6785,
+           f.20004.0.16 = V6786,
+           f.20004.0.17 = V6787,
+           f.20004.0.18 = V6788,
+           f.20004.0.19 = V6789,
+           f.20004.0.20 = V6790,
+           f.20004.0.21 = V6791,
+           f.20004.0.22 = V6792,
+           f.20004.0.23 = V6793,
+           f.20004.0.24 = V6794,
+           f.20004.0.25 = V6795,
+           f.20004.0.26 = V6796,
+           f.20004.0.27 = V6797,
+           f.20004.0.28 = V6798,
+           f.20004.0.29 = V6799,
+           f.20004.0.30 = V6800,
+           f.20004.0.31 = V6801,
+           f.20010.0.0 = V7218,
+           f.20010.0.1 = V7219,
+           f.20010.0.2 = V7220,
+           f.20010.0.3 = V7221,
+           f.20010.0.4 = V7222,
+           f.20010.0.5 = V7223,
+           f.20010.0.6 = V7224,
+           f.20010.0.7 = V7225,
+           f.20010.0.8 = V7226,
+           f.20010.0.9 = V7227,
+           f.20010.0.10 = V7228,
+           f.20010.0.11 = V7229,
+           f.20010.0.12 = V7230,
+           f.20010.0.13 = V7231,
+           f.20010.0.14 = V7232,
+           f.20010.0.15 = V7233,
+           f.20010.0.16 = V7234,
+           f.20010.0.17 = V7235,
+           f.20010.0.18 = V7236,
+           f.20010.0.19 = V7237,
+           f.20010.0.20 = V7238,
+           f.20010.0.21 = V7239,
+           f.20010.0.22 = V7240,
+           f.20010.0.23 = V7241,
+           f.20010.0.24 = V7242,
+           f.20010.0.25 = V7243,
+           f.20010.0.26 = V7244,
+           f.20010.0.27 = V7245,
+           f.20010.0.28 = V7246,
+           f.20010.0.29 = V7247,
+           f.20010.0.30 = V7248,
+           f.20010.0.31 = V7249,
+           
+           f.20107.0.0 = V8318,
+           f.20107.0.1 = V8319,
+           f.20107.0.2 = V8320,
+           f.20107.0.3 = V8321,
+           f.20107.0.4 = V8322,
+           f.20107.0.5 = V8323,
+           f.20107.0.6 = V8324,
+           f.20107.0.7 = V8325,
+           f.20107.0.8 = V8326,
+           f.20107.0.9 = V8327,
+           
+           f.20110.0.0 = V8413,
+           f.20110.0.1 = V8414,
+           f.20110.0.2 = V8415,
+           f.20110.0.3 = V8416,
+           f.20110.0.4 = V8417,
+           f.20110.0.5 = V8418,
+           f.20110.0.6 = V8419,
+           f.20110.0.7 = V8420,
+           f.20110.0.8 = V8421,
+           f.20110.0.9 = V8422,
+           f.20110.0.10 = V8423,
+           f.20110.1.0 = V8424)
+  return(out)                         
+}
+
+hx_ill_date <- function(dat, illness) {    
+  dat <- dat %>%    
+    mutate(ill.0.0 = ifelse(f.20002.0.0 == illness,  f.20008.0.0, NA)) %>% 
+    mutate(ill.0.1 = ifelse(f.20002.0.1 == illness, f.20008.0.1, NA)) %>% 
+    mutate(ill.0.2 = ifelse(f.20002.0.2 == illness, f.20008.0.2, NA)) %>% 
+    mutate(ill.0.3 = ifelse(f.20002.0.3 == illness, f.20008.0.3, NA)) %>% 
+    mutate(ill.0.4 = ifelse(f.20002.0.4 == illness, f.20008.0.4, NA)) %>% 
+    mutate(ill.0.5 = ifelse(f.20002.0.5 == illness, f.20008.0.5, NA)) %>% 
+    mutate(ill.0.6 = ifelse(f.20002.0.6 == illness, f.20008.0.6, NA)) %>% 
+    mutate(ill.0.7 = ifelse(f.20002.0.7 == illness, f.20008.0.7, NA)) %>% 
+    mutate(ill.0.8 = ifelse(f.20002.0.8 == illness, f.20008.0.8, NA)) %>% 
+    mutate(ill.0.9 = ifelse(f.20002.0.9 == illness, f.20008.0.9, NA)) %>% 
+    mutate(ill.0.10 = ifelse(f.20002.0.10 == illness, f.20008.0.10, NA)) %>% 
+    mutate(ill.0.11 = ifelse(f.20002.0.11 == illness, f.20008.0.11, NA)) %>% 
+    mutate(ill.0.12 = ifelse(f.20002.0.12 == illness, f.20008.0.12, NA)) %>% 
+    mutate(ill.0.13 = ifelse(f.20002.0.13 == illness, f.20008.0.13, NA)) %>% 
+    mutate(ill.0.14 = ifelse(f.20002.0.14 == illness, f.20008.0.14, NA)) %>% 
+    mutate(ill.0.15 = ifelse(f.20002.0.15 == illness, f.20008.0.15, NA)) %>% 
+    mutate(ill.0.16 = ifelse(f.20002.0.16 == illness, f.20008.0.16, NA)) %>% 
+    mutate(ill.0.17 = ifelse(f.20002.0.17 == illness, f.20008.0.17, NA)) %>% 
+    mutate(ill.0.18 = ifelse(f.20002.0.18 == illness, f.20008.0.18, NA)) %>% 
+    mutate(ill.0.19 = ifelse(f.20002.0.19 == illness, f.20008.0.19, NA)) %>% 
+    mutate(ill.0.20 = ifelse(f.20002.0.20 == illness, f.20008.0.20, NA)) %>% 
+    mutate(ill.0.21 = ifelse(f.20002.0.21 == illness, f.20008.0.21, NA)) %>% 
+    mutate(ill.0.22 = ifelse(f.20002.0.22 == illness, f.20008.0.22, NA)) %>% 
+    mutate(ill.0.23 = ifelse(f.20002.0.23 == illness, f.20008.0.23, NA)) %>% 
+    mutate(ill.0.24 = ifelse(f.20002.0.24 == illness, f.20008.0.24, NA)) %>% 
+    mutate(ill.0.25 = ifelse(f.20002.0.25 == illness, f.20008.0.25, NA)) %>% 
+    mutate(ill.0.26 = ifelse(f.20002.0.26 == illness, f.20008.0.26, NA)) %>% 
+    mutate(ill.0.27 = ifelse(f.20002.0.27 == illness, f.20008.0.27, NA)) %>% 
+    mutate(ill.0.28 = ifelse(f.20002.0.28 == illness, f.20008.0.28, NA)) %>% 
+    mutate(ill.0.29 = ifelse(f.20002.0.29 == illness, f.20008.0.29, NA)) %>% 
+    mutate(ill.0.30 = ifelse(f.20002.0.30 == illness, f.20008.0.30, NA)) %>% 
+    mutate(ill.0.31 = ifelse(f.20002.0.31 == illness, f.20008.0.31, NA)) %>% 
+    mutate(ill.0.32 = ifelse(f.20002.0.32 == illness, f.20008.0.32, NA)) %>% 
+    mutate(ill.0.33 = ifelse(f.20002.0.33 == illness, f.20008.0.33, NA)) 
+  
+  dat$ill_Hx_year <- apply(dat[, c('ill.0.0', 'ill.0.1', 'ill.0.2', 'ill.0.3', 'ill.0.4', 
+                                   'ill.0.5', 'ill.0.6', 'ill.0.7', 'ill.0.8', 'ill.0.9', 'ill.0.10', 
+                                   'ill.0.11', 'ill.0.12', 
+                                   'ill.0.13', 'ill.0.14', 'ill.0.15', 'ill.0.16', 'ill.0.17',
+                                   'ill.0.18', 'ill.0.19', 'ill.0.20', 'ill.0.21', 'ill.0.22',
+                                   'ill.0.23', 'ill.0.24', 'ill.0.25', 'ill.0.26', 'ill.0.27',
+                                   'ill.0.28', 'ill.0.29', 'ill.0.30', 'ill.0.31', 'ill.0.32',
+                                   'ill.0.33')], 1, min, na.rm=TRUE)
+  dat$ill_Hx_year[is.infinite(dat$ill_Hx_year)] <- NA
+  dat <- dat %>%
+    mutate(ill_Hx_year = case_when(ill_Hx_year == -1 ~ as.numeric(year(f.53.0.0)),
+                                   ill_Hx_year > 0 ~ ill_Hx_year)) %>%
+    mutate(ill_Hx_age = ill_Hx_year - f.34.0.0) %>% 
+    dplyr::select(f.eid, ill_Hx_year, ill_Hx_age)
+  return(dat)
+}
+
+hx_oper_date <- function(dat, illness) {    
+  dat <- dat %>%    
+    mutate(ill.0.0 = ifelse(f.20004.0.0 == illness,  f.20010.0.0, NA)) %>% 
+    mutate(ill.0.1 = ifelse(f.20004.0.1 == illness, f.20010.0.1, NA)) %>% 
+    mutate(ill.0.2 = ifelse(f.20004.0.2 == illness, f.20010.0.2, NA)) %>% 
+    mutate(ill.0.3 = ifelse(f.20004.0.3 == illness, f.20010.0.3, NA)) %>% 
+    mutate(ill.0.4 = ifelse(f.20004.0.4 == illness, f.20010.0.4, NA)) %>% 
+    mutate(ill.0.5 = ifelse(f.20004.0.5 == illness, f.20010.0.5, NA)) %>% 
+    mutate(ill.0.6 = ifelse(f.20004.0.6 == illness, f.20010.0.6, NA)) %>% 
+    mutate(ill.0.7 = ifelse(f.20004.0.7 == illness, f.20010.0.7, NA)) %>% 
+    mutate(ill.0.8 = ifelse(f.20004.0.8 == illness, f.20010.0.8, NA)) %>% 
+    mutate(ill.0.9 = ifelse(f.20004.0.9 == illness, f.20010.0.9, NA)) %>% 
+    mutate(ill.0.10 = ifelse(f.20004.0.10 == illness, f.20010.0.10, NA)) %>% 
+    mutate(ill.0.11 = ifelse(f.20004.0.11 == illness, f.20010.0.11, NA)) %>% 
+    mutate(ill.0.12 = ifelse(f.20004.0.12 == illness, f.20010.0.12, NA)) %>% 
+    mutate(ill.0.13 = ifelse(f.20004.0.13 == illness, f.20010.0.13, NA)) %>% 
+    mutate(ill.0.14 = ifelse(f.20004.0.14 == illness, f.20010.0.14, NA)) %>% 
+    mutate(ill.0.15 = ifelse(f.20004.0.15 == illness, f.20010.0.15, NA)) %>% 
+    mutate(ill.0.16 = ifelse(f.20004.0.16 == illness, f.20010.0.16, NA)) %>% 
+    mutate(ill.0.17 = ifelse(f.20004.0.17 == illness, f.20010.0.17, NA)) %>% 
+    mutate(ill.0.18 = ifelse(f.20004.0.18 == illness, f.20010.0.18, NA)) %>% 
+    mutate(ill.0.19 = ifelse(f.20004.0.19 == illness, f.20010.0.19, NA)) %>% 
+    mutate(ill.0.20 = ifelse(f.20004.0.20 == illness, f.20010.0.20, NA)) %>% 
+    mutate(ill.0.21 = ifelse(f.20004.0.21 == illness, f.20010.0.21, NA)) %>% 
+    mutate(ill.0.22 = ifelse(f.20004.0.22 == illness, f.20010.0.22, NA)) %>% 
+    mutate(ill.0.23 = ifelse(f.20004.0.23 == illness, f.20010.0.23, NA)) %>% 
+    mutate(ill.0.24 = ifelse(f.20004.0.24 == illness, f.20010.0.24, NA)) %>% 
+    mutate(ill.0.25 = ifelse(f.20004.0.25 == illness, f.20010.0.25, NA)) %>% 
+    mutate(ill.0.26 = ifelse(f.20004.0.26 == illness, f.20010.0.26, NA)) %>% 
+    mutate(ill.0.27 = ifelse(f.20004.0.27 == illness, f.20010.0.27, NA)) %>% 
+    mutate(ill.0.28 = ifelse(f.20004.0.28 == illness, f.20010.0.28, NA)) %>% 
+    mutate(ill.0.29 = ifelse(f.20004.0.29 == illness, f.20010.0.29, NA)) %>% 
+    mutate(ill.0.30 = ifelse(f.20004.0.30 == illness, f.20010.0.30, NA)) %>% 
+    mutate(ill.0.31 = ifelse(f.20004.0.31 == illness, f.20010.0.31, NA)) 
+  
+  dat$oper_Hx_year <- apply(dat[, c('ill.0.0', 'ill.0.1', 'ill.0.2', 'ill.0.3', 'ill.0.4', 
+                                   'ill.0.5', 'ill.0.6', 'ill.0.7', 'ill.0.8', 'ill.0.9', 'ill.0.10', 
+                                   'ill.0.11', 'ill.0.12', 
+                                   'ill.0.13', 'ill.0.14', 'ill.0.15', 'ill.0.16', 'ill.0.17',
+                                   'ill.0.18', 'ill.0.19', 'ill.0.20', 'ill.0.21', 'ill.0.22',
+                                   'ill.0.23', 'ill.0.24', 'ill.0.25', 'ill.0.26', 'ill.0.27',
+                                   'ill.0.28', 'ill.0.29', 'ill.0.30', 'ill.0.31')], 1, min, na.rm=TRUE)
+  dat$oper_Hx_year[is.infinite(dat$oper_Hx_year)] <- NA
+  dat <- dat %>%
+    mutate(oper_Hx_year = case_when(oper_Hx_year == -1 ~ as.numeric(year(f.53.0.0)),
+                                   oper_Hx_year > 0 ~ oper_Hx_year)) %>%
+    mutate(oper_Hx_age = oper_Hx_year - f.34.0.0) %>% 
+    dplyr::select(f.eid, oper_Hx_year, oper_Hx_age)
+  return(dat)
+}
+
+
+
+
+
+
+
+#---------------------------------------------------------------------------------
+# Determine which SNPs in the genomic risk score for coronary artery disease display... 
+# the largest effect size and see what their association with known risk factors are
+#---------------------------------------------------------------------------------
+# make a list of files to read in
+bd_files <- list.files(path = "D:\\ukb37503\\split_ukb37503tab\\", recursive = TRUE,
+                       full.names = TRUE)
+head(bd_files, 100)
+# read the list of files and bind them together
+bd <- rbindlist(sapply(bd_files, read_sel, simplify = FALSE),
+                use.names = TRUE, idcol = "FileName")
+
+# convert data types of bd dataframe 
+## convert "NA" strings to NA
+bd[bd == "NA"] <- NA
+## f.eid to a character
+## 
+head(bd)
+names(bd)[1] <- "file"
+names(bd)[2] <- "eid"
+bd$eid <- as.integer(bd$eid)
+bd$f.53.0.0 <- ymd(bd$f.53.0.0)
+bd$f.42000.0.0 <- ymd(bd$f.42000.0.0)
+bd$f.42006.0.0 <- ymd(bd$f.42006.0.0)
+bd$f.42008.0.0 <- ymd(bd$f.42008.0.0)
+bd$f.42010.0.0 <- ymd(bd$f.42010.0.0)
+bd$f.42012.0.0 <- ymd(bd$f.42012.0.0)
+bd$f.191.0.0 <- ymd(bd$f.191.0.0)
+bd$f.40000.0.0 <- ymd(bd$f.40000.0.0)
+
+
+doe <- dplyr::select(bd, eid, f.53.0.0, f.40000.0.0, f.191.0.0)
+
+head(doe)
+
+
+
+
+
+
+cvd_hx_strings <- c(1075, # Heart attack/myocardial infarction
+                    1081, # Stroke
+                    1583, # Ischaemic stroke 
+                      1067, # peripheral vascular disease
+                      1088,	# arterial embolism
+                      1087) # leg claudication/ intermittent claudication
+cvd_med_hx <- hx_ill_date(bd, cvd_hx_strings)
+head(cvd_med_hx, 1000)
+
+
+cvd_oper_strings <- c(1070, # coronary angioplasty (ptca) +/- stent
+                      1095, # coronary artery bypass grafts (cabg)
+                      1108, # .	1108 leg artery angioplasty +/- stent
+                      1440)
+cvd_oper_hx <- hx_oper_date(bd, cvd_oper_strings)
+head(cvd_oper_hx, 1000)
+str(cvd_oper_hx)
+
+
+
+
+
+
+
+
+
+
+hes <- fread("2020-05-01_hesin.txt")
+hes[hes == ""] <- NA
+hes <- hes %>%
+  dplyr::select(eid, ins_index, epistart, admidate) %>%
+  mutate(event_start = case_when(!is.na(epistart) ~ epistart,
+                                 is.na(epistart) ~ admidate)) %>%
+  dplyr::select(-epistart, -admidate)
+hes$event_start <- ymd(hes$event_start)
+hes <- left_join(doe, hes, by = "eid") %>%
+  # remove HES events occuring before enrollment
+  filter(event_start >= f.53.0.0) %>%
+  dplyr::select(-f.53.0.0, -f.40000.0.0, -f.191.0.0)
+
+
+#
+diag <- fread("2020-05-01_hesin_diag.txt")
+#
+diag <- left_join(doe, hes, by = "eid") %>%
+  left_join(diag, by = c("eid", "ins_index"))
+#
+diag[diag == ""] <- NA
+
+
+
+oper <- fread("2020-05-01_hesin_oper.txt")
+oper <- left_join(doe, hes, by = c("eid")) %>%
+  left_join(oper, by = c("eid", "ins_index"))
+oper[oper == ""] <- NA
+
+
+
+
+# myocardial infarction hes
+# http://biobank.ndph.ox.ac.uk/showcase/showcase/docs/alg_outcome_mi.pdf
+mi_strings<- c("^410", # Acute myocardial infarction
+             "^411", # Other acute and subacute forms of ischaemic heart disease
+             "^412", # Old myocardial infarction 
+             "^42979", # Ill-defined descriptions and complications of heart disease - Other
+             "^I21", # Acute myocardial infarction
+             "^I22", # Subsequent myocardial infarction
+             "^I23", # Certain current complications following acute myocardial infarction
+             "I241", # Dressler syndrome
+             "I252") # Old myocardial infarction
+
+
+#
+# http://biobank.ndph.ox.ac.uk/showcase/showcase/docs/alg_outcome_main.pdf
+isch_stroke_strings <- c("^434", # Occlusion of cerebral arteries
+                      "^436", # Acute, but ill-defined, cerebrovascular disease 
+                      "^I63", # Cerebral infarction 
+                      "^I64") # Stroke, not specified as haemorrhage or infarction 
+                    
+
+mi_strings <- c("^410", # Acute myocardial infarction
+             "^411", # Other acute and subacute forms of ischaemic heart disease
+             "^412", # Old myocardial infarction 
+             "^42979", # Ill-defined descriptions and complications of heart disease - Other
+             "^I21", # Acute myocardial infarction
+             "^I22", # Subsequent myocardial infarction
+             "^I23", # Certain current complications following acute myocardial infarction
+             "I241", # Dressler syndrome
+             "I252") # Old myocardial infarction
+
+# coronary revascularization OPSC4 operations
+coron_revasc_strings <- c("^K40", # Saphenous vein graft replacement of coronary artery
+                          "^K41", # Other autograft replacement of coronary artery
+                          "^K42", # Allograft replacement of coronary artery
+                          "^K43", # Prosthetic replacement of coronary artery
+                          "^K44", # Other replacement of coronary artery
+                          "^K45", # Connection of thoracic artery to coronary artery
+                          "^K46", # Other bypass of coronary artery
+                          "^K47", #  Repair of coronary artery
+                          "^K48", # Other open operations on coronary artery
+                          "^K49", # Transluminal balloon angioplasty of coronary artery
+                          "^K50", # Other therapeutic transluminal operations on coronary artery
+                          "^K75") # Percutaneous transluminal balloon angioplasty and insertion of stent into coronary artery
+
+# peripheral arterial disease HES diagnoses
+pad_strings <- c("^440", # Atherosclerosis
+              "^444", # Arterial embolism and thrombosis
+              "4438", # Other specified peripheral vascular disease
+              "4439", # Peripheral vascular disease, unspecified
+              "^I70", # Atherosclerosis
+              "^I74", # Arterial embolism and thrombosis
+              "^I738", # Other specified peripheral vascular diseases
+              "^I739") # Peripheral vascular disease, unspecified
+
+# peripheral arterial disease OPSC4 operations
+pad_oper_strings <- c("^L50", # Other emergency bypass of iliac artery
+              "^L51", # Other bypass of iliac artery
+              "^L52", # Reconstruction of iliac artery
+              "^L54", # Transluminal operations on iliac artery
+              "^L58", # Other emergency bypass of femoral artery
+              "^L59", # Other bypass of femoral artery
+              "^L60", # Reconstruction of femoral artery
+              "^L63", # Transluminal operations on femoral artery
+              "^X09") # Amputation of leg
+                 
+influenza_strings <- c("^J09", # J09 Influenza due to certain identified influenza virus
+                       "^J10", # J10 Influenza due to identified influenza virus
+                      "^J11") # J11 Influenza, virus not identified
+  
+
+## function takes the dataframe of the diagnoses ('df') and vector list of diagoses ('diags')
+anno_diag <- function(df, diags) {
+  df <- df %>%
+    # check each primary and secondary diagnoses for ICD-10 diagnosis code
+    mutate(diag_icd = case_when(!is.na(diag_icd10) ~ diag_icd10,
+                                is.na(diag_icd10) ~  diag_icd9)) %>%
+    mutate(diag = ifelse(str_detect(diag_icd, paste(diags, collapse = "|")), 1, 0)) %>%
+    # arrange diagnoses by dates (earliest to latest)
+    arrange(event_start) %>%
+    # arrange those that have a diagnosis of interest to those that do not
+    arrange(desc(diag)) %>%
+    # arrange by individual IDs
+    arrange(eid) 
+  # remove duplicated columns based on individual ID and event_start
+  dups <- df[c("eid", "event_start")]
+  df<- df[!duplicated(dups),]
+  # remove duplicated columns based on individual ID
+  df <- df[!duplicated(df$eid),]
+  df <- df %>% 
+    mutate(event_censor = case_when(diag == 1 ~ 1,
+                                  is.na(diag) | diag == 0 | diag == "NA" ~ 0)) %>%
+    # determine the time, in days, in which an  diagnosis of interest occurs post-enrollment...
+    # or when censoring needs to occur based on loss to follow-up, death, or no event occuring
+    mutate(event_t = case_when(event_censor == 1 ~ as.numeric(event_start - f.53.0.0)/365,
+                               event_censor == 0 & !is.na(f.40000.0.0) ~ as.numeric(f.40000.0.0 - f.53.0.0)/365,
+                               event_censor == 0 & is.na(f.40000.0.0) & !is.na(f.191.0.0) ~ 
+                                 as.numeric(f.191.0.0 - f.53.0.0)/365,
+                               event_censor == 0 & is.na(f.40000.0.0) & is.na(f.191.0.0) ~ 
+                                 as.numeric(as.Date("2017-03-31") - f.53.0.0)/365)) %>%
+    dplyr::select(eid, event_censor, event_t)
+  return(df)
+}
+
+
+anno_oper <- function(df, opers) {
+  df <- df %>%
+    # check each primary and secondary diagnoses for ICD-10 diagnosis code
+    mutate(oper = ifelse(str_detect(oper4, paste(opers, collapse = "|")), 1, 0))
+  df$opdate <- ymd(df$opdate)
+  df <- df %>%
+    mutate(oper_date = case_when(!is.na(opdate) ~ opdate,
+                                 is.na(opdate) ~ event_start)) %>% 
+    # arrange diagnoses by dates (earliest to latest)
+    arrange(oper_date) %>%
+    # arrange those that have a diagnosis of interest to those that do not
+    arrange(desc(oper)) %>%
+    # arrange by individual IDs
+    arrange(eid) 
+  # remove duplicated columns based on individual ID and event_start
+  dups <- df[c("eid", "event_start")]
+  df<- df[!duplicated(dups),]
+  # remove duplicated columns based on individual ID
+  df <- df[!duplicated(df$eid),]
+  df <- df %>% 
+    mutate(event_censor = case_when(oper == 1 ~ 1,
+                                    is.na(oper) | oper == 0 | oper == "NA" ~ 0)) %>%
+    # determine the time, in days, in which an  diagnosis of interest occurs post-enrollment...
+    # or when censoring needs to occur based on loss to follow-up, death, or no event occuring
+    mutate(event_t = case_when(event_censor == 1 ~ as.numeric(oper_date - f.53.0.0)/365,
+                               event_censor == 0 & !is.na(f.40000.0.0) ~ as.numeric(f.40000.0.0 - f.53.0.0)/365,
+                               event_censor == 0 & is.na(f.40000.0.0) & !is.na(f.191.0.0) ~ 
+                                 as.numeric(f.191.0.0 - f.53.0.0)/365,
+                               event_censor == 0 & is.na(f.40000.0.0) & is.na(f.191.0.0) ~ 
+                                 as.numeric(as.Date("2017-03-31") - f.53.0.0)/365)) %>%
+    dplyr::select(eid, event_censor, event_t)
+  return(df)
+}
+  
+
+mi_hes_diag <- anno_diag(diag, mi_strings) %>%
+  rename(f.eid = eid,
+         mi_diag_censor = event_censor, 
+         mi_diag_postenrol = event_t)
+
+head(mi_hes_diag)
+dim(mi_hes_diag)
+mi_hes_diag %>%
+  filter(mi_diag_censor == 1)
+
+revasc_hes_oper <- anno_oper(oper, coron_revasc_strings) %>%
+  rename(f.eid = eid, 
+         cad_oper_censor = event_censor, 
+         cad_oper_postenrol = event_t)
+
+stroke_hes_diag <- anno_diag(diag, isch_stroke_strings) %>%
+  rename(f.eid = eid, 
+         stroke_diag_censor = event_censor, 
+         stroke_diag_postenrol = event_t)
+
+pad_hes_diag <- anno_diag(diag, pad_strings) %>%
+  rename(f.eid = eid,
+         pad_diag_censor = event_censor, 
+         pad_diag_postenrol = event_t)
+
+pad_hes_oper <- anno_oper(oper, pad_oper_strings) %>%
+  rename(f.eid = eid, 
+         pad_oper_censor = event_censor, 
+         pad_oper_postenrol = event_t)
+
+
+influenza <- anno_diag(diag, influenza_strings) %>%
+  rename(f.eid = eid,
+         influenza_censor = event_censor, 
+         influenza_postenrol = event_t)
+head(influenza)
+dim(influenza)
+sum(influenza$influenza_censor)
+
+rm(hes)
+rm(diag)
+rm(oper)
+
+
+
+#---------------------------------------------------------------------------------
+# read UK Biobank serum biochemistry data 
+#---------------------------------------------------------------------------------
+biochem <- fread("D:\\ukb29334\\ukb29334.tab", header=TRUE, sep="\t")
+biochem <- data.frame(f.eid = biochem$f.eid, 
+                      TC = biochem$f.30690.0.0,
+                      HDLc = biochem$f.30760.0.0,
+                      APOA1 = biochem$f.30630.0.0,
+                      LDLc = biochem$f.30780.0.0,
+                      APOB = biochem$f.30640.0.0,
+                      TG = biochem$f.30870.0.0,
+                      LPa = biochem$f.30790.0.0,
+                      CRP = biochem$f.30710.0.0,
+                      glucose = biochem$f.30740.0,
+                      HbA1c = biochem$f.30750.0.0)
+
+head(biochem)
+
+
+#---------------------------------------------------------------------------------
+# read UK Biobank serum biochemistry data 
+#---------------------------------------------------------------------------------
+genetic <- fread("D:\\ukb25720_genetic\\ukb25720.tab", header=TRUE, sep="\t", 
+                    select = c('f.eid', # individual IDs
+                               'f.22000.0.0', # Genotype measurement batch
+                               'f.22001.0.0', # Genetic sex
+                               'f.22027.0.0',	# Outliers for heterozygosity or missing rate
+                               'f.22021.0.0',	# Genetic kinship to other participants
+                               'f.22006.0.0',	# Genetic ethnic grouping
+                               'f.22009.0.1', # Genetic principal components
+                               'f.22009.0.2',
+                               'f.22009.0.3',
+                               'f.22009.0.4',
+                               'f.22009.0.5',
+                               'f.22009.0.6',
+                               'f.22009.0.7',
+                               'f.22009.0.8',
+                               'f.22009.0.9',
+                               'f.22009.0.10')) 
+
+
+
+
+#---------------------------------------------------------------------------------
+# read UK Biobank coronary artery disease genomic scores
+#---------------------------------------------------------------------------------
+LDpred_chr <- function(dat) {
+  dat <- dat %>%
+    mutate(PRS_chr = case_when(str_detect(FileName, "chr1\\.") ~ "chr1",
+                               str_detect(FileName, "chr2\\.") ~ "chr2",
+                               str_detect(FileName, "chr3\\.") ~ "chr3",
+                               str_detect(FileName, "chr4\\.") ~ "chr4",
+                               str_detect(FileName, "chr5\\.") ~ "chr5",
+                               str_detect(FileName, "chr6\\.") ~ "chr6",
+                               str_detect(FileName, "chr7\\.") ~ "chr7",
+                               str_detect(FileName, "chr8\\.") ~ "chr8",
+                               str_detect(FileName, "chr9\\.") ~ "chr9",
+                               str_detect(FileName, "chr10\\.") ~ "chr10",
+                               str_detect(FileName, "chr11\\.") ~ "chr11",
+                               str_detect(FileName, "chr12\\.") ~ "chr12",
+                               str_detect(FileName, "chr13\\.") ~ "chr13",
+                               str_detect(FileName, "chr14\\.") ~ "chr14",
+                               str_detect(FileName, "chr15\\.") ~ "chr15",
+                               str_detect(FileName, "chr16\\.") ~ "chr16",
+                               str_detect(FileName, "chr17\\.") ~ "chr17",
+                               str_detect(FileName, "chr18\\.") ~ "chr18",
+                               str_detect(FileName, "chr19\\.") ~ "chr19",
+                               str_detect(FileName, "chr20\\.") ~ "chr20",
+                               str_detect(FileName, "chr21\\.") ~ "chr21",
+                               str_detect(FileName, "chr22\\.") ~ "chr22"))
+  dat <- dat %>%
+    dplyr::select(-FileName, -IID, -CNT, -CNT2, -PHENO) %>%
+    spread(PRS_chr, SCORESUM) %>%
+    filter(!is.na(chr1)) %>%
+    mutate(PRS_score = chr1 +
+             chr2 +
+             chr3 +
+             chr4 +
+             chr5 +
+             chr6 +
+             chr7 +
+             chr8 +
+             chr9 +
+             chr10 +
+             chr11 +
+             chr12 +
+             chr13 +
+             chr14 +
+             chr15 +
+             chr16 +
+             chr17 +
+             chr18 +
+             chr19 +
+             chr20 +
+             chr21 +
+             chr22)
+  names(dat)[1] <- "f.eid"
+  dat$f.eid <- as.character(dat$f.eid)
+  dat$grs_percentile <- ecdf(dat$PRS_score)(dat$PRS_score)*100
+  return(dat)
+}
+
+
+
+CAD_files <- list.files(path = "D:\\cad_grs\\CoronaryArteryDisease_PRS_LDpred_rho0.001_v3\\scores\\", recursive = TRUE,
+                        pattern = "\\_LDpred_rho0.001*", 
+                        full.names = TRUE)
+
+
+CAD_files_LPA <- CAD_files[CAD_files != "D:\\cad_grs\\CoronaryArteryDisease_PRS_LDpred_rho0.001_v3\\scores\\CoronaryArteryDisease_PRS_LDpred_rho0.001_SCORE_woLPA.chr6.profile"]
+CAD_files_woLPA <- CAD_files[CAD_files != "D:\\cad_grs\\CoronaryArteryDisease_PRS_LDpred_rho0.001_v3\\scores\\CoronaryArteryDisease_PRS_LDpred_rho0.001_SCORE.chr6.profile"]
+
+
+CADgrs <- rbindlist(sapply(CAD_files_LPA, fread, simplify = FALSE),
+                    use.names = TRUE, idcol = "FileName")
+CADgrs <- LDpred_chr(CADgrs)
+CADgrs <- CADgrs %>%
+  dplyr::select(f.eid, PRS_score, grs_percentile) %>%
+  rename(CADgrs = PRS_score) %>%
+  rename(CADgrs_perc = grs_percentile)
+CADgrs$f.eid <- as.integer(CADgrs$f.eid)
+rm(CAD_files)
+rm(CAD_files_LPA)
+rm(CAD_files_woLPA)
+head(CADgrs)
+
+CADgrs_woLPA <- rbindlist(sapply(CAD_files_woLPA, fread, simplify = FALSE),
+                          use.names = TRUE, idcol = "FileName")
+CADgrs_woLPA <- LDpred_chr(CADgrs_woLPA)
+CADgrs_woLPA <- CADgrs_woLPA %>%
+  dplyr::select(f.eid, PRS_score, grs_percentile) %>%
+  rename(CADgrs_woLPA = PRS_score) %>%
+  rename(CADgrs_perc_woLPA = grs_percentile)
+head(CADgrs_woLPA)
+
+
+
+#---------------------------------------------------------------------------------
+# read and annotate prospective diagnoses for:
+## aortic stensosis
+## peripheral vascular disease
+#---------------------------------------------------------------------------------
+
+mvp <- fread("D:\\MVP_lipid_GRS\\2020-04-19-HDLprs_223snv.csv")
+mvp <- dplyr::select(mvp, f.eid, na_count, mvp_hdl_grs)
+head(mvp)
+dim(mvp)
+mvp$f.eid <- as.integer(mvp$f.eid)
+max(mvp$na_count)
+
+names(bd)[2] <- "f.eid"
+names(bd)
+df <- left_join(bd, biochem, by = "f.eid") %>%
+  left_join(genetic, by = "f.eid") %>%
+  left_join(mvp, by = "f.eid") %>%
+  #left_join(influenza, by = "f.eid") %>%
+  left_join(CADgrs, by = "f.eid") %>%
+  left_join(cvd_oper_hx, by = "f.eid") %>%
+  left_join(cvd_med_hx, by = "f.eid") %>%
+  left_join(mi_hes_diag, by = "f.eid") %>%
+  left_join(revasc_hes_oper, by = "f.eid") %>%
+  left_join(stroke_hes_diag, by = "f.eid") %>%
+  left_join(pad_hes_diag, by = "f.eid") %>%
+  left_join(pad_hes_oper, by = "f.eid")
+
+dim(df)
+
+median
+
+df <- df %>%
+  filter(f.22006.0.0 == 1) %>%
+  mutate(HDLc_sd = HDLc/0.3817815) %>%
+  filter(na_count <= 3) %>%
+  filter(!is.na(mvp_hdl_grs)) %>%
+  mutate(age_square = f.21022.0.0**2)
+dim(df)
+
+hist(df$HDLc_sd)
+hist(df$mvp_hdl_grs)
+sd(df$HDLc, na.rm = TRUE)
+head(df)
+
+summary(coxph(Surv(influenza_postenrol, influenza_censor) ~ HDLc_sd + 
+                f.21022.0.0 + # age at enrollment
+                age_square +
+                f.22001.0.0 + # genetic sex
+                f.22000.0.0 + # genotyping array and batch
+                f.22009.0.1 + f.22009.0.2 + f.22009.0.3 + f.22009.0.4, # first 4 princpal components of genetic ancestry
+              data=df))  
+cox.zph(coxph(Surv(influenza_postenrol, influenza_censor) ~ HDLc_sd + 
+                f.21022.0.0 + # age at enrollment
+                age_square +
+                f.22001.0.0 + # genetic sex
+                f.22000.0.0 + # genotyping array and batch
+                f.22009.0.1 + f.22009.0.2 + f.22009.0.3 + f.22009.0.4, # first 4 princpal components of genetic ancestry
+              data=df))
+
+summary(coxph(Surv(influenza_postenrol, influenza_censor) ~ mvp_hdl_grs + 
+                f.21022.0.0 + # age at enrollment
+                age_square +
+                f.22001.0.0 + # genetic sex
+                f.22000.0.0 + # genotyping array and batch
+                f.22009.0.1 + f.22009.0.2 + f.22009.0.3 + f.22009.0.4, # first 4 princpal components of genetic ancestry
+              data=df)) 
+cox.zph(coxph(Surv(influenza_postenrol, influenza_censor) ~ mvp_hdl_grs + 
+                f.21022.0.0 + # age at enrollment
+                age_square +
+                f.22001.0.0 + # genetic sex
+                f.22000.0.0 + # genotyping array and batch
+                f.22009.0.1 + f.22009.0.2 + f.22009.0.3 + f.22009.0.4, # first 4 princpal components of genetic ancestry
+              data=df)) 
+
+
+df <- df %>%
+  mutate(hypertension = case_when(f.6150.0.0 == 4 ~ 1,
+                                  f.6150.0.1 == 4 ~ 1,
+                                  f.6150.0.2 == 4 ~ 1,
+                                  f.6150.0.3 == 4 ~ 1,
+                                  f.6150.0.0 == -3 ~ -99,
+                                  f.6150.0.0 == -7 ~ 0,
+                                  !is.na(f.6150.0.0) ~ 0,
+                                  is.na(f.6150.0.0) ~ -99)) %>%
+  mutate(angina = case_when(f.6150.0.0 == 2 ~ 1,
+                            f.6150.0.1 == 2 ~ 1,
+                            f.6150.0.2 == 2 ~ 1,
+                            f.6150.0.3 == 2 ~ 1,
+                            f.6150.0.0 == -3 ~ -99,
+                            f.6150.0.0 == -7 ~ 0,
+                            !is.na(f.6150.0.0) ~ 0,
+                            is.na(f.6150.0.0) ~ -99)) %>%
+  mutate(mi = case_when(f.6150.0.0 == 1 ~ 1,
+                        f.6150.0.1 == 1 ~ 1,
+                        f.6150.0.2 == 1 ~ 1,
+                        f.6150.0.3 == 1 ~ 1,
+                        f.6150.0.0 == -3 ~ -99,
+                        f.6150.0.0 == -7 ~ 0,
+                        !is.na(f.6150.0.0) ~ 0,
+                        is.na(f.6150.0.0) ~ -99)) %>%
+  mutate(stroke = case_when(f.6150.0.0 == 3 ~ 1,
+                            f.6150.0.1 == 3 ~ 1,
+                            f.6150.0.2 == 3 ~ 1,
+                            f.6150.0.3 == 3 ~ 1,
+                            f.6150.0.0 == -3 ~ -99,
+                            f.6150.0.0 == -7 ~ 0,
+                            !is.na(f.6150.0.0) ~ 0,
+                            is.na(f.6150.0.0) ~ -99)) %>%
+  mutate(diabetes = case_when(f.2443.0.0 == 1 ~ 1,
+                              f.2443.0.0 == 0 ~ 0,
+                              f.2443.0.0 == -1 ~ -99,
+                              f.2443.0.0 == -3 ~ -99,
+                              is.na(f.2443.0.0) ~ -99)) %>%
+  mutate(current_smoker = case_when(f.20116.0.0 == -3 ~ -99,
+                                    f.20116.0.0 == 0 ~ 0,
+                                    f.20116.0.0 == 1 ~ 0,
+                                    f.20116.0.0 == 2 ~ 1,
+                                    is.na(f.20116.0.0) ~ -99)) %>%
+  mutate(LLM = ifelse(f.6153.0.0 == 1 |
+                        f.6153.0.1 == 1 |
+                        f.6153.0.2 == 1 |
+                        f.6153.0.3 == 1, 1, 0)) %>%
+  mutate(antihypertensive = ifelse(f.6153.0.0 == 2 |
+                                     f.6153.0.1 == 2 |
+                                     f.6153.0.2 == 2 |
+                                     f.6153.0.3 == 2, 1, 0)) %>%
+  mutate(LDLc_LLM = case_when(LLM == 1 ~ LDLc*1.43, 
+                              LLM == 0  ~ LDLc,
+                              is.na(LLM) ~ LDLc)) %>%
+  mutate(TC_LLM = case_when(LLM == 1 ~ TC*1.43, 
+                            LLM == 0  ~ TC,
+                            is.na(LLM) ~ TC)) %>%
+  mutate(maternal_cvd_hx = case_when(f.20110.0.0 == 1 | f.20110.0.0 == 2 |
+                                       f.20110.0.1 == 1 | f.20110.0.1 == 2 |
+                                       f.20110.0.2 == 1 | f.20110.0.2 == 2 |
+                                       f.20110.0.3 == 1 | f.20110.0.3 == 2 |
+                                       f.20110.0.4 == 1 | f.20110.0.4 == 2 |
+                                       f.20110.0.5 == 1 | f.20110.0.5 == 2 |
+                                       f.20110.0.6 == 1 | f.20110.0.6 == 2 |
+                                       f.20110.0.7 == 1 | f.20110.0.7 == 2 |
+                                       f.20110.0.8 == 1 | f.20110.0.8 == 2 |
+                                       f.20110.0.9 == 1 | f.20110.0.9 == 2 |
+                                       f.20110.0.10 == 1 | f.20110.0.10 == 2 ~ 1,
+                                     f.20110.0.0 == -11 | f.20110.0.0 == -13 |
+                                       f.20110.0.1 == -11 | f.20110.0.1 == -13 |
+                                       f.20110.0.2 == -11 | f.20110.0.2 == -13 |
+                                       f.20110.0.3 == -11 | f.20110.0.3 == -13 |
+                                       f.20110.0.4 == -11 | f.20110.0.4 == -13 |
+                                       f.20110.0.5 == -11 | f.20110.0.5 == -13 |
+                                       f.20110.0.6 == -11 | f.20110.0.6 == -13 |
+                                       f.20110.0.7 == -11 | f.20110.0.7 == -13 |
+                                       f.20110.0.8 == -11 | f.20110.0.8 == -13 |
+                                       f.20110.0.9 == -11 | f.20110.0.9 == -13 |
+                                       f.20110.0.10 == -11 | f.20110.0.10 == -13 ~ -99,
+                                     (!is.na(f.20110.0.0) & (f.20110.0.0 != 1 | f.20110.0.0 != 2)) |  
+                                       (!is.na(f.20110.0.1) & (f.20110.0.1 != 1 | f.20110.0.1 != 2)) |  
+                                       (!is.na(f.20110.0.2) & (f.20110.0.2 != 1 | f.20110.0.2 != 2)) |  
+                                       (!is.na(f.20110.0.3) & (f.20110.0.3 != 1 | f.20110.0.3 != 2)) |  
+                                       (!is.na(f.20110.0.4) & (f.20110.0.4 != 1 | f.20110.0.4 != 2)) |  
+                                       (!is.na(f.20110.0.5) & (f.20110.0.5 != 1 | f.20110.0.5 != 2)) |  
+                                       (!is.na(f.20110.0.6) & (f.20110.0.6 != 1 | f.20110.0.6 != 2)) |  
+                                       (!is.na(f.20110.0.7) & (f.20110.0.7 != 1 | f.20110.0.7 != 2)) |  
+                                       (!is.na(f.20110.0.8) & (f.20110.0.8 != 1 | f.20110.0.8 != 2)) |  
+                                       (!is.na(f.20110.0.9) & (f.20110.0.9 != 1 | f.20110.0.9 != 2)) | 
+                                       (!is.na(f.20110.0.10) & (f.20110.0.10 != 1 | f.20110.0.10 != 2)) ~ 0)) %>%
+  mutate(paternal_cvd_hx = case_when(f.20107.0.0 == 1 | f.20107.0.0 == 2 |
+                                       f.20107.0.1 == 1 | f.20107.0.1 == 2 |
+                                       f.20107.0.2 == 1 | f.20107.0.2 == 2 |
+                                       f.20107.0.3 == 1 | f.20107.0.3 == 2 |
+                                       f.20107.0.4 == 1 | f.20107.0.4 == 2 |
+                                       f.20107.0.5 == 1 | f.20107.0.5 == 2 |
+                                       f.20107.0.6 == 1 | f.20107.0.6 == 2 |
+                                       f.20107.0.7 == 1 | f.20107.0.7 == 2 |
+                                       f.20107.0.8 == 1 | f.20107.0.8 == 2 |
+                                       f.20107.0.9 == 1 | f.20107.0.9 == 2  ~ 1,
+                                     f.20107.0.0 == -11 | f.20107.0.0 == -13 |
+                                       f.20107.0.1 == -11 | f.20107.0.1 == -13 |
+                                       f.20107.0.2 == -11 | f.20107.0.2 == -13 |
+                                       f.20107.0.3 == -11 | f.20107.0.3 == -13 |
+                                       f.20107.0.4 == -11 | f.20107.0.4 == -13 |
+                                       f.20107.0.5 == -11 | f.20107.0.5 == -13 |
+                                       f.20107.0.6 == -11 | f.20107.0.6 == -13 |
+                                       f.20107.0.7 == -11 | f.20107.0.7 == -13 |
+                                       f.20107.0.8 == -11 | f.20107.0.8 == -13 |
+                                       f.20107.0.9 == -11 | f.20107.0.9 == -13 ~ -99,
+                                     (!is.na(f.20107.0.0) & (f.20107.0.0 != 1 | f.20107.0.0 != 2)) |  
+                                       (!is.na(f.20107.0.1) & (f.20107.0.1 != 1 | f.20107.0.1 != 2)) |  
+                                       (!is.na(f.20107.0.2) & (f.20107.0.2 != 1 | f.20107.0.2 != 2)) |  
+                                       (!is.na(f.20107.0.3) & (f.20107.0.3 != 1 | f.20107.0.3 != 2)) |  
+                                       (!is.na(f.20107.0.4) & (f.20107.0.4 != 1 | f.20107.0.4 != 2)) |  
+                                       (!is.na(f.20107.0.5) & (f.20107.0.5 != 1 | f.20107.0.5 != 2)) |  
+                                       (!is.na(f.20107.0.6) & (f.20107.0.6 != 1 | f.20107.0.6 != 2)) |  
+                                       (!is.na(f.20107.0.7) & (f.20107.0.7 != 1 | f.20107.0.7 != 2)) |  
+                                       (!is.na(f.20107.0.8) & (f.20107.0.8 != 1 | f.20107.0.8 != 2)) |  
+                                       (!is.na(f.20107.0.9) & (f.20107.0.9 != 1 | f.20107.0.9 != 2)) ~ 0))
+          
+head(df$paternal_cvd_hx, 10000)
+head(df$maternal_cvd_hx, 10000)
+
+df$hypertension[df$hypertension == -99] <- NA
+df$antihypertensive[is.na(df$antihypertensive)] <- 0
+df$diabetes[df$diabetes == -99] <- NA
+df$current_smoker[df$current_smoker == -99] <- NA
+df$stroke[df$stroke == -99] <- NA
+df$angina[df$angina == -99] <- NA
+df$mi[df$mi == -99] <- NA
+df$paternal_cvd_hx[df$paternal_cvd_hx == -99] <- NA
+df$maternal_cvd_hx[df$maternal_cvd_hx == -99] <- NA
+
+
+
+# create a feature that determines the year that the first coronary or carotid revascularization, ischemic stroke, myocardial infarction, or death occured
+df <- df %>%
+  mutate(cvd_censor = ifelse(mi_diag_censor == 1 |
+                               cad_oper_censor == 1 |
+                               stroke_diag_censor == 1 |
+                               pad_diag_censor == 1 | 
+                               pad_oper_censor == 1, 1, 0)) 
+
+df$cvd_t <- apply(df[, c("mi_diag_postenrol", "cad_oper_postenrol",
+                            "stroke_diag_postenrol",
+                            "pad_diag_postenrol", "pad_oper_postenrol")], 1, min, na.rm=TRUE)
+
+
+dim(df)
+names(df)
+head(df)
+head(df)
+df_test <- df %>% 
+  ### CODE BLOCK FOR CAD_GRS_CLINICAL
+  # left_join(CADgrs, by = "f.eid") %>%
+  # filter(f.22006.0.0 == 1) %>%
+  # filter(f.21022.0.0 <= 59) %>%
+  # mutate(max_censor_date = (60 - f.21022.0.0)*365 + f.53.0.0) %>% 
+  # mutate(cvd_date = f.53.0.0 + cvd_t*365) %>%
+  # mutate(max_censor_date = case_when(max_censor_date >= as_date(17256, origin = lubridate::origin) ~ as_date(17256, origin = lubridate::origin),
+                                     # max_censor_date < as_date(17256, origin = lubridate::origin) ~ max_censor_date)) %>% 
+  # mutate(premature_date = case_when(!is.na(cvd_date) & cvd_date <= max_censor_date ~ cvd_date,
+                                 # (is.na(cvd_date) | cvd_date > max_censor_date) & f.191.0.0 <= max_censor_date ~ f.191.0.0,
+                                 # (is.na(cvd_date) | cvd_date > max_censor_date) & f.40000.0.0 <= max_censor_date ~ f.40000.0.0,
+                                 # (is.na(cvd_date) | cvd_date > max_censor_date) & 
+                                   # (is.na(f.40000.0.0) | f.40000.0.0 > max_censor_date) &
+                                   # (is.na(f.191.0.0) | f.191.0.0 > max_censor_date) ~ max_censor_date)) %>%
+  # mutate(premature_censor = ifelse(as.numeric(premature_date - f.53.0.0)/365 <= 55 & cvd_censor == 1, 1, 0)) %>%
+  # mutate(premature_t = as.numeric(premature_date - f.53.0.0)/365) %>%
+  # mutate(premature_age = f.21022.0.0 + as.numeric(premature_date - f.53.0.0)/365) %>%
+  # filter(!is.na(CADgrs)) %>%
+
+  filter(f.22006.0.0 == 1) %>%
+  #filter(!is.na(CADgrs)) %>%
+  filter(is.na(ill_Hx_year)) %>%
+  filter(is.na(oper_Hx_year)) %>%
+  filter(!is.na(HDLc)) %>%
+  filter(!is.na(TC)) %>%
+  # 
+  #filter(!is.na(LPa)) %>%
+  filter(!is.na(f.4080.0.0)) %>%
+  filter(!is.na(diabetes)) %>%
+  filter(!is.na(current_smoker)) %>%
+  filter(!is.na(antihypertensive)) %>%
+  mutate(PCE_10y_risk = case_when(f.31.0.0 == 1 & antihypertensive == 0 ~
+                                    1-0.9114**exp(((12.344 * log(f.21022.0.0)) +
+                                                     (11.853 * log(TC * 38.67)) +
+                                                     (-2.664 * log(f.21022.0.0) * log(TC * 38.67)) +
+                                                     (-7.990 * log(HDLc * 38.67)) +
+                                                     (1.769 * log(f.21022.0.0) * log(HDLc * 38.67)) +
+                                                     (1.764 * log(f.4080.0.0)) +
+                                                     (7.837 * current_smoker) +
+                                                     (-1.795 * log(f.21022.0.0) * current_smoker) +
+                                                     (0.658 * diabetes)) - 61.18),
+                                  f.31.0.0 == 1 & antihypertensive == 1 ~
+                                    1-0.9114**exp(((12.344 * log(f.21022.0.0)) +
+                                                     (11.853 * log(TC * 38.67)) +
+                                                     (-2.664 * log(f.21022.0.0) * log(TC * 38.67)) +
+                                                     (-7.990 * log(HDLc * 38.67)) +
+                                                     (1.769 * log(f.21022.0.0) * log(HDLc * 38.67)) +
+                                                     (1.797 * log(f.4080.0.0)) +
+                                                     (7.837 * current_smoker) +
+                                                     (-1.795 * log(f.21022.0.0) * current_smoker) +
+                                                     (0.658 * diabetes)) - 61.18),
+                                  f.31.0.0 == 0 & antihypertensive == 0 ~
+                                    1-0.9665**exp(((-29.799 * log(f.21022.0.0)) +
+                                                     (4.884 * log(f.21022.0.0)**2) +
+                                                     (13.54 * log(TC * 38.67)) +
+                                                     (-3.114 * log(f.21022.0.0) * log(TC * 38.67)) +
+                                                     (-13.578 * log(HDLc * 38.67)) +
+                                                     (3.149 * log(f.21022.0.0) * log(HDLc * 38.67)) +
+                                                     (1.957 * log(f.4080.0.0)) +
+                                                     (7.574 * current_smoker) +
+                                                     (-1.665 * log(f.21022.0.0) * current_smoker) +
+                                                     (0.661 * diabetes)) - (-29.18)),
+                                  f.31.0.0 == 0 & antihypertensive == 1 ~
+                                    1-0.9665**exp(((-29.799 * log(f.21022.0.0)) +
+                                                     (4.884 * log(f.21022.0.0)**2) +
+                                                     (13.54 * log(TC * 38.67)) +
+                                                     (-3.114 * log(f.21022.0.0) * log(TC * 38.67)) +
+                                                     (-13.578 * log(HDLc * 38.67)) +
+                                                     (3.149 * log(f.21022.0.0) * log(HDLc * 38.67)) +
+                                                     (2.019 * log(f.4080.0.0)) +
+                                                     (7.574 * current_smoker) +
+                                                     (-1.665 * log(f.21022.0.0) * current_smoker) +
+                                                     (0.661 * diabetes)) - (-29.18)))) %>% 
+  mutate(LPa_mgdl = LPa /2.4) %>%
+  mutate(LPa_strata = case_when(LPa_mgdl < 30 ~ 1,
+                                LPa_mgdl >= 30 & LPa_mgdl < 50 ~ 2,
+                                LPa_mgdl >= 50 & LPa_mgdl < 70 ~ 3,
+                                LPa_mgdl >= 70 ~ 4)) %>%
+  mutate(LPa_50mgdl = ifelse(LPa_mgdl >= 50, 1, 0)) %>%
+  mutate(CADgrs_quintiles= case_when(CADgrs_perc < 20 ~ 1,
+                                     CADgrs_perc >= 20 & CADgrs_perc < 40 ~ 2,
+                                     CADgrs_perc >= 40 & CADgrs_perc < 60 ~ 3,
+                                     CADgrs_perc >= 60 & CADgrs_perc < 80 ~ 4,
+                                     CADgrs_perc >= 80 ~ 5)) %>%
+  mutate(CADgrs_95centile = ifelse(CADgrs_perc >= 80, 1, 0)) %>% 
+  mutate(parental_cvd_hx = case_when(maternal_cvd_hx == 1 | paternal_cvd_hx == 1 ~ 1,
+                                     maternal_cvd_hx == 0 & paternal_cvd_hx == 0 ~ 0)) %>%
+  mutate(LPa_FHx = case_when(LPa_50mgdl == 0 & parental_cvd_hx == 0 ~ 1,
+                             LPa_50mgdl == 1 & parental_cvd_hx == 0 ~ 2,
+                             LPa_50mgdl == 0 & parental_cvd_hx == 1 ~ 3,
+                             LPa_50mgdl == 1 & parental_cvd_hx == 1 ~ 4)) %>%
+  mutate(CADgrs_FHx = case_when(CADgrs_95centile == 0 & parental_cvd_hx == 0 ~ 1,
+                                CADgrs_95centile == 1 & parental_cvd_hx == 0 ~ 2,
+                                CADgrs_95centile == 0 & parental_cvd_hx == 1 ~ 3,
+                                CADgrs_95centile == 1 & parental_cvd_hx == 1 ~ 4))
+
+    
+
+dim(df_test)
+head(df$CADgrs_perc)
+
+head(df_test$parental_cvd_hx, 100)    
+    
+df_LPAhigh <- df_test %>%
+  filter(LPa_strata >= 3)
+  
+dim(df_LPAhigh)
+head(df_test)
+dim(df_test)
+
+hist(df_test$PCE_10y_risk)
+
+
+library(rocplot)
+library(pROC)
+library(survival)
+head(biochem)
+?ggsurvplot
+
+head(df_test)
+library(survminer)
+
+
+LPAhigh_CADquint <- survfit(Surv(cvd_t, cvd_censor) ~ CADgrs_quintiles, data=df_LPAhigh)
+#tiff("ukb_afib_TTNv_pred.tiff", units="in", width=4.00, height=4.00, res=300)
+ggsurvplot(LPAhigh_CADquint, test.for.trend = TRUE, risk.table = TRUE, 
+           legend.labs=c("q1", "q2", "q3", "q4", "q5"),
+           censor=FALSE,
+           fun="event",
+           palette = c("navyblue", "skyblue3", "slateblue2", "indianred1", "red3"),
+           ylim = c(0, 0.1), xlim = c(0,10), break.time.by=2, xlab="Years post-enrollment", ylab="Incidence of ASCVD",
+           font.main = c(8, "bold", "black"),
+           font.x = c(8, "bold", "black"),
+           font.y = c(8, "bold", "black"),
+           font.tickslab = c(8, "plain", "black"),
+           font.caption = c(8, "plain", "black"),
+           font.legend = c(8, "plain", "black"),
+           font.subtitle = c(8, "plain", "black"),
+           font.title = c(8, "plain", "black"),
+           fontsize = 2.5, 
+           risk.table.fontsize = 1.75,
+           risk.table.height = 0.3,
+           tables.theme = theme_survminer(font.main = 8, base_size = 8, 
+                                          font.submain = 8, font.x = c(8, "plain", "black"), 
+                                          font.legend = c(8, "plain", "black"), font.tickslab = 8)) 
+#dev.off()
+
+
+
+?ggsurvplot
+LPa_FHx
+LPa_FHx <- survfit(Surv(cvd_t, cvd_censor) ~ LPa_FHx, data=df_test)
+#tiff("ukb_afib_TTNv_pred.tiff", units="in", width=4.00, height=4.00, res=300)
+ggsurvplot(LPa_FHx, test.for.trend = TRUE, risk.table = TRUE, 
+           legend.labs=c("Lp(a)-:FHx-", "Lp(a)+:FHx-", "Lp(a)-:FHx+", "Lp(a)+:FHx+"),
+           censor=FALSE,
+           conf.int=TRUE,
+           fun="event",
+           palette = c("skyblue3", "slateblue2", "indianred1", "red3"),
+           ylim = c(0, 0.1), xlim = c(0,10), break.time.by=2, xlab="Years post-enrollment", ylab="Incidence of ASCVD",
+           font.main = c(8, "bold", "black"),
+           font.x = c(8, "bold", "black"),
+           font.y = c(8, "bold", "black"),
+           font.tickslab = c(8, "plain", "black"),
+           font.caption = c(8, "plain", "black"),
+           font.legend = c(8, "plain", "black"),
+           font.subtitle = c(8, "plain", "black"),
+           font.title = c(8, "plain", "black"),
+           fontsize = 2.5, 
+           risk.table.fontsize = 1.75,
+           risk.table.height = 0.3,
+           tables.theme = theme_survminer(font.main = 8, base_size = 8, 
+                                          font.submain = 8, font.x = c(8, "plain", "black"), 
+                                          font.legend = c(8, "plain", "black"), font.tickslab = 8)) 
+
+
+CADgrs_FHx <- survfit(Surv(cvd_t, cvd_censor) ~ CADgrs_FHx, data=df_test)
+#tiff("ukb_afib_TTNv_pred.tiff", units="in", width=4.00, height=4.00, res=300)
+ggsurvplot(CADgrs_FHx, test.for.trend = TRUE, risk.table = TRUE, 
+           legend.labs=c("GRS-:FHx-", "GRS+:FHx-", "GRS-:FHx+", "GRS+:FHx+"),
+           censor=FALSE,
+           conf.int=TRUE,
+           fun="event",
+           palette = c("skyblue3", "slateblue2", "indianred1", "red3"),
+           ylim = c(0, 0.15), xlim = c(0,10), break.time.by=2, xlab="Years post-enrollment", ylab="Incidence of ASCVD",
+           font.main = c(8, "bold", "black"),
+           font.x = c(8, "bold", "black"),
+           font.y = c(8, "bold", "black"),
+           font.tickslab = c(8, "plain", "black"),
+           font.caption = c(8, "plain", "black"),
+           font.legend = c(8, "plain", "black"),
+           font.subtitle = c(8, "plain", "black"),
+           font.title = c(8, "plain", "black"),
+           fontsize = 2.5, 
+           risk.table.fontsize = 1.75,
+           risk.table.height = 0.3,
+           tables.theme = theme_survminer(font.main = 8, base_size = 8, 
+                                          font.submain = 8, font.x = c(8, "plain", "black"), 
+                                          font.legend = c(8, "plain", "black"), font.tickslab = 8)) 
+
+
+# Cox proportional hazard ratios for the association of composite cardiovascular event versuus decile LDL-C polygenic score percentile among overall cohort
+
+summary(coxph(Surv(cvd_t, cvd_censor) ~ as.factor(LPa_strata) + 
+                f.21022.0.0 + # age at enrollment
+                f.22001.0.0 + # genetic sex
+                f.22000.0.0 + # genotyping array and batch
+                f.22009.0.1 + f.22009.0.2 + f.22009.0.3 + f.22009.0.4, # first 4 princpal components of genetic ancestry
+              data=df_test))
+
+
+head(doe)
+
+
+head(df_test)
+lpa_strata_mi_km <- survfit(Surv(mi_diag_postenrol, mi_diag_censor) ~ LPa_strata, data=df_test)
+#tiff("ukb_afib_TTNv_pred.tiff", units="in", width=4.00, height=4.00, res=300)
+ggsurvplot(lpa_strata_mi_km, test.for.trend = TRUE, risk.table = TRUE, 
+           legend.labs=c("<30", "30-50", "50-70", ">70"),
+           censor=FALSE,
+           fun="event",
+           palette = c("skyblue3", "slateblue2", "indianred1", "red3"),
+           ylim = c(0, 0.1), xlim = c(0,10), break.time.by=2, xlab="Years post-enrollment", ylab="Incidence of ASCVD",
+           font.main = c(8, "bold", "black"),
+           font.x = c(8, "bold", "black"),
+           font.y = c(8, "bold", "black"),
+           font.tickslab = c(8, "plain", "black"),
+           font.caption = c(8, "plain", "black"),
+           font.legend = c(8, "plain", "black"),
+           font.subtitle = c(8, "plain", "black"),
+           font.title = c(8, "plain", "black"),
+           fontsize = 2.5, 
+           risk.table.fontsize = 1.75,
+           risk.table.height = 0.3,
+           tables.theme = theme_survminer(font.main = 8, base_size = 8, 
+                                          font.submain = 8, font.x = c(8, "plain", "black"), 
+                                          font.legend = c(8, "plain", "black"), font.tickslab = 8)) 
+#dev.off()
+
+head(df)
+cox.zph(coxph(Surv(cvd_date, cvd_censor) ~ LPa + 
+                f.21022.0.0 + # age at enrollment
+                f.22001.0.0 + # genetic sex
+                f.22000.0.0 + # genotyping array and batch
+                f.22009.0.1 + f.22009.0.2 + f.22009.0.3 + f.22009.0.4, # first 4 princpal components of genetic ancestry
+              data=df_test))
+
+PCE <- glm(cvd_censor ~ PCE_10y_risk, data = df_LPAhigh, family=binomial (link = "logit"))
+GRS <- glm(cvd_censor ~ CADgrs + f.21022.0.0 + f.22001.0.0, data = df_LPAhigh, family=binomial (link = "logit"))
+PCE_GRS <- glm(cvd_censor ~ PCE_10y_risk + CADgrs, data = df_LPAhigh, family=binomial (link = "logit"))
+
+head(df_test)
+
+p1=predict(PCE, type=c("response"))
+p2=predict(GRS, type=c("response"))
+p3=predict(PCE_GRS, type=c("response"))
+
+
+head(df)
+
+g1 <- roc(cvd_censor ~ p1, data = df_LPAhigh, ci = TRUE)
+g1
+g3 <- roc(cvd_censor ~ p3, data = df_LPAhigh, ci = TRUE)
+g3
+
+g2 <- roc(cvd_censor ~ p2, data = df_LPAhigh, ci = TRUE)
+g2
+
+
+g4 <- roc(mi_event ~ p4, data = df_test, ci = TRUE)
+g4
+
+roc.test(g1, g2, method=c("delong", "bootstrap", "venkatraman", "sensitivity", "specificity"))
+roc.test(g3, g4, method=c("delong", "bootstrap", "venkatraman", "sensitivity", "specificity"))
